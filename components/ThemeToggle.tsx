@@ -15,7 +15,12 @@ export default function ThemeToggle() {
             {options.map(opt => (
                 <button
                     key={opt.value}
-                    onClick={() => setTheme(opt.value)}
+                    onClick={
+                        (e) => {
+                            e.preventDefault();
+                            setTheme(opt.value);
+                        }
+                    }
                     title={opt.value}
                     className={`cursor-pointer rounded px-2 py-1 text-sm transition ${
                         theme === opt.value
