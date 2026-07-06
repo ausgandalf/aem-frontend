@@ -1,26 +1,92 @@
 @import "tailwindcss";
 
+/* Class-based dark variant for Tailwind v4 (needed if you ever use dark: utilities) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Light theme (default) ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    --background: #f8fafc;
+    --surface: #ffffff;
+    --surface-hover: #f1f5f9;
+    --border: #e2e8f0;
+
+    --selected: #dfcfad;
+
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+
+    --primary: #754f00;
+    --primary-hover: #885d02;
+    --primary-text: #ffffff;
+
+    --success-bg: #dcfce7;
+    --success-text: #15803d;
+    --warning-bg: #fef9c3;
+    --warning-text: #a16207;
+    --danger-bg: #fee2e2;
+    --danger-text: #b91c1c;
+    --danger: #dc2626;
+    --danger-hover: #b91c1c;
+    --success: #16a34a;
+    --success-hover: #15803d;
+}
+
+/* ── Dark theme (class-controlled ONLY - no media query!) ── */
+.dark {
+    --background: #0f172a;
+    --surface: #1e293b;
+    --surface-hover: #334155;
+    --border: #334155;
+
+    --selected: #0f172a;
+
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    --primary: #6b501d;
+    --primary-hover: #7e5e22;
+    --primary-text: #ffffff;
+
+    --success-bg: #14532d;
+    --success-text: #86efac;
+    --warning-bg: #713f12;
+    --warning-text: #fde047;
+    --danger-bg: #7f1d1d;
+    --danger-text: #fca5a5;
+    --danger: #ef4444;
+    --danger-hover: #f87171;
+    --success: #22c55e;
+    --success-hover: #4ade80;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+    --color-background: var(--background);
+    --color-surface: var(--surface);
+    --color-surface-hover: var(--surface-hover);
+    --color-selected: var(--selected);
+    --color-border-token: var(--border);
+    --color-text-primary: var(--text-primary);
+    --color-text-secondary: var(--text-secondary);
+    --color-text-muted: var(--text-muted);
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-primary-text: var(--primary-text);
+    --color-success-bg: var(--success-bg);
+    --color-success-text: var(--success-text);
+    --color-warning-bg: var(--warning-bg);
+    --color-warning-text: var(--warning-text);
+    --color-danger-bg: var(--danger-bg);
+    --color-danger-text: var(--danger-text);
+    --color-danger: var(--danger);
+    --color-danger-hover: var(--danger-hover);
+    --color-success: var(--success);
+    --color-success-hover: var(--success-hover);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    background: var(--background);
+    color: var(--text-primary);
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
