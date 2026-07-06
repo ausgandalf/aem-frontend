@@ -4,12 +4,22 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { useRoles } from '@/context/RolesContext';
 import Spinner from '@/components/Spinner';
+import OrganizationCombobox from '@/components/OrganizationCombobox';
 
 interface Props {
     userId: number;
     onClose: () => void;
     onChanged: () => void;
 }
+
+const CONTACT_OPTIONS: { value: string; label: string }[] = [
+    { value: 'email', label: 'Email' },
+    { value: 'sms', label: 'SMS' },
+    { value: 'scheduled_call', label: 'Scheduled call' },
+];
+
+const contactLabel = (value: string) =>
+    CONTACT_OPTIONS.find((o) => o.value === value)?.label ?? value;
 
 interface UserDetail {
     id: number;
@@ -20,6 +30,9 @@ interface UserDetail {
     phone: string | null;
     role: string;
     status: string;
+    organization_id: number | null;
+    organization: { id: number; name: string } | null;
+    preferred_contact: string[] | null;
     created_at: string;
 }
 
@@ -44,6 +57,8 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
         last_name: '',
         phone: '',
         role: '',
+        organization_id: null as number | null,
+        preferred_contact: [] as string[],
     });
     const [original, setOriginal] = useState({
         first_name: '',
@@ -51,7 +66,11 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
         last_name: '',
         phone: '',
         role: '',
+        organization_id: null as number | null,
+        preferred_contact: [] as string[],
     });
+    // Display label for the organization combobox (not part of dirty-tracking)
+    const [orgLabel, setOrgLabel] = useState('');
     const isDirty = (Object.keys(form) as (keyof typeof form)[])
         .some((key) => form[key] !== original[key]);
 
@@ -90,9 +109,12 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
                     last_name: data.user.last_name ?? '',
                     phone: data.user.phone ?? '',
                     role: data.user.role ?? '',
+                    organization_id: data.user.organization_id ?? null,
+                    preferred_contact: data.user.preferred_contact ?? [],
                 };
                 setForm(values);
                 setOriginal(values);
+                setOrgLabel(data.user.organization?.name ?? '');
             });
     }, [userId]);
 
@@ -143,7 +165,7 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
 
             {/* Drawer - slides from right */}
             <div
-                className={`fixed right-0 top-0 z-50 h-full w-128 overflow-y-auto border-l border-border-token bg-surface shadow-xl transition-transform duration-300 ease-out ${
+                className={`fixed right-0 top-0 z-50 h-full w-128 max-w-[90vw] overflow-y-auto border-l border-border-token bg-surface shadow-xl transition-transform duration-300 ease-out ${
                     visible ? 'translate-x-0' : 'translate-x-full'
                 }`}
             >
@@ -194,7 +216,7 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
                 </div>
 
                 {/* Content */}
-                <div className="p-4">
+                <div className="p-4 overflow-y-auto max-h-[calc(100vh-100px)]">
                     {tab === 'details' && !user && <Spinner label="Loading user..." />}
                     {tab === 'details' && user && (
                         <div className="space-y-3 text-sm text-text-primary">
@@ -206,7 +228,17 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
                                 {user.phone ?? '—'}
                             </div>
                             <div>
+                                <span className="text-text-secondary">Contact method:</span>{' '}
+                                {user.preferred_contact && user.preferred_contact.length > 0
+                                    ? user.preferred_contact.map(contactLabel).join(', ')
+                                    : '—'}
+                            </div>
+                            <div>
                                 <span className="text-text-secondary">Role:</span> {getLabel(user.role)}
+                            </div>
+                            <div>
+                                <span className="text-text-secondary">Organization:</span>{' '}
+                                {user.organization?.name ?? '—'}
                             </div>
                             <div>
                                 <span className="text-text-secondary">Status:</span> {user.status}
@@ -285,6 +317,35 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
                             </div>
 
                             <div>
+                                <span className="block text-sm font-medium text-text-secondary">
+                                    Contact method
+                                </span>
+                                <div className="mt-2 flex gap-4">
+                                    {CONTACT_OPTIONS.map((opt) => (
+                                        <label
+                                            key={opt.value}
+                                            className="flex items-center gap-2 text-sm text-text-primary"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={form.preferred_contact.includes(opt.value)}
+                                                onChange={() =>
+                                                    setForm((f) => ({
+                                                        ...f,
+                                                        preferred_contact: f.preferred_contact.includes(opt.value)
+                                                            ? f.preferred_contact.filter((v) => v !== opt.value)
+                                                            : [...f.preferred_contact, opt.value],
+                                                    }))
+                                                }
+                                                className="h-4 w-4 rounded border-border-token"
+                                            />
+                                            {opt.label}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
                                 <label className="block text-sm font-medium text-text-secondary">
                                     Role
                                 </label>
@@ -299,6 +360,22 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
                                         </option>
                                     ))}
                                 </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-text-secondary">
+                                    Organization
+                                </label>
+                                <div className="mt-1">
+                                    <OrganizationCombobox
+                                        value={form.organization_id}
+                                        label={orgLabel}
+                                        onChange={(id, label) => {
+                                            setForm({ ...form, organization_id: id });
+                                            setOrgLabel(label);
+                                        }}
+                                    />
+                                </div>
                             </div>
 
                             <button

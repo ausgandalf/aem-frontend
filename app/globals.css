@@ -13,12 +13,12 @@
     --selected: #dfcfad;
 
     --text-primary: #0f172a;
-    --text-secondary: #64748b;
+    --text-secondary: #323a46;
     --text-muted: #94a3b8;
 
-    --primary: #754f00;
-    --primary-hover: #885d02;
-    --primary-text: #ffffff;
+    --primary: #d39307;
+    --primary-hover: #f1a705;
+    --primary-text: #000000;
 
     --success-bg: #dcfce7;
     --success-text: #15803d;
@@ -45,7 +45,7 @@
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
 
-    --primary: #6b501d;
+    --primary: #b7882e;
     --primary-hover: #7e5e22;
     --primary-text: #ffffff;
 

@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
-import ThemeToggle from '@/components/ThemeToggle';
 import Spinner from '@/components/Spinner';
 import OrganizationDrawer from './OrganizationDrawer';
 
@@ -29,14 +28,17 @@ interface Paginated<T> {
     total: number;
 }
 
-export default function OrganizationsPage() {
+function OrganizationsPageContent() {
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { user, roles, loading: authLoading } = useAuth();
 
     const [orgs, setOrgs] = useState<Paginated<Organization> | null>(null);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [page, setPage] = useState(1);
+    // Search + pagination initialize from the URL so the view is bookmarkable
+    const [search, setSearch] = useState(searchParams.get('search') ?? '');
+    const [page, setPage] = useState(Number(searchParams.get('page') ?? '1'));
     const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
     const [creating, setCreating] = useState(false);
 
@@ -55,7 +57,11 @@ export default function OrganizationsPage() {
 
         const params = new URLSearchParams();
         if (search) params.set('search', search);
-        params.set('page', String(page));
+        if (page > 1) params.set('page', String(page));
+
+        // Reflect the current view in the URL (bookmarkable / shareable)
+        const query = params.toString();
+        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
 
         const res = await api(`/api/admin/organizations?${params.toString()}`);
         if (res.ok) {
@@ -63,7 +69,7 @@ export default function OrganizationsPage() {
         }
 
         setLoading(false);
-    }, [search, page]);
+    }, [search, page, pathname, router]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -93,21 +99,10 @@ export default function OrganizationsPage() {
     }
 
     return (
-        <main className="min-h-screen bg-background p-8">
-            <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-text-primary">
-                    Organization Management
-                </h1>
-                <div className="flex items-center gap-3">
-                    <ThemeToggle />
-                    <Link
-                        href="/dashboard"
-                        className="rounded border border-border-token bg-surface px-4 py-2 text-sm text-text-primary hover:bg-surface-hover"
-                    >
-                        ← Dashboard
-                    </Link>
-                </div>
-            </div>
+        <div className="p-8">
+            <h1 className="mb-6 text-2xl font-bold text-text-primary">
+                Organization Management
+            </h1>
 
             <div className="mb-4 flex flex-wrap items-center gap-3">
                 <input
@@ -122,7 +117,7 @@ export default function OrganizationsPage() {
                 />
                 <button
                     onClick={() => setCreating(true)}
-                    className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-text hover:bg-primary-hover"
+                    className="cursor-pointer rounded bg-primary px-4 py-2 text-sm font-medium text-primary-text hover:bg-primary-hover"
                 >
                     + New Organization
                 </button>
@@ -174,7 +169,7 @@ export default function OrganizationsPage() {
                                     <td className="px-4 py-3">
                                         <button
                                             onClick={() => setSelectedOrgId(org.id)}
-                                            className="text-primary hover:underline"
+                                            className="cursor-pointer text-primary hover:underline"
                                         >
                                             {org.name}
                                         </button>
@@ -189,7 +184,13 @@ export default function OrganizationsPage() {
                                         {org.register_no ?? '—'}
                                     </td>
                                     <td className="px-4 py-3 text-text-primary">
-                                        {org.users_count}
+                                        <Link
+                                            href={"/admin/users?organization_id=" + org.id}
+                                            className="text-sm text-primary hover:underline"
+                                            title={"Find users in " + org.name}
+                                        >
+                                            {org.users_count}
+                                        </Link>
                                     </td>
                                     <td className="px-4 py-3">
                                         <button
@@ -244,6 +245,15 @@ export default function OrganizationsPage() {
                     onChanged={fetchOrgs}
                 />
             )}
-        </main>
+        </div>
+    );
+}
+
+// useSearchParams() must be read inside a Suspense boundary in the App Router
+export default function OrganizationsPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-text-secondary">Loading...</div>}>
+            <OrganizationsPageContent />
+        </Suspense>
     );
 }

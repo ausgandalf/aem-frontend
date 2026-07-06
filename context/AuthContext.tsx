@@ -5,10 +5,13 @@ import { api } from '@/lib/api';
 interface User {
     id: number;
     first_name: string;
+    middle_name: string | null;
     last_name: string;
     email: string;
+    phone: string | null;
     role: string;
     status: string;
+    preferred_contact: string[] | null;
 }
 
 interface AuthContextType {

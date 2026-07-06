@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useRoles } from '@/context/RolesContext';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
-import ThemeToggle from '@/components/ThemeToggle';
 import UserDrawer from './UserDrawer';
+import OrganizationCombobox from '@/components/OrganizationCombobox';
+import Spinner from '@/components/Spinner';
 
 interface User {
     id: number;
@@ -17,6 +17,7 @@ interface User {
     phone: string | null;
     role: string;
     status: string;
+    organization: { id: number; name: string } | null;
     created_at: string;
 }
 
@@ -30,16 +31,26 @@ interface Paginated<T> {
 
 const STATUSES = ['pending', 'active', 'blocked'];
 
-export default function UsersPage() {
+function UsersPageContent() {
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { user, roles, loading: authLoading } = useAuth();
     const { roles: availableRoles, getLabel } = useRoles();
     const [users, setUsers] = useState<Paginated<User> | null>(null);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [roleFilter, setRoleFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
-    const [page, setPage] = useState(1);
+    // All filters/pagination initialize from the URL so the view is bookmarkable
+    const [search, setSearch] = useState(searchParams.get('search') ?? '');
+    const [roleFilter, setRoleFilter] = useState(searchParams.get('role') ?? '');
+    const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? '');
+    const [organizationId, setOrganizationId] = useState<number | null>(
+        searchParams.get('organization_id')
+            ? Number(searchParams.get('organization_id'))
+            : null
+    );
+    // Display name for the org filter; resolved from the id (see effect below)
+    const [organizationLabel, setOrganizationLabel] = useState('');
+    const [page, setPage] = useState(Number(searchParams.get('page') ?? '1'));
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -52,23 +63,41 @@ export default function UsersPage() {
         }
     }, [user, roles, authLoading, router]);
 
+    // When the org filter comes from a bookmarked URL we only have the id;
+    // fetch the name so the combobox can display it.
+    useEffect(() => {
+        if (organizationId && !organizationLabel) {
+            api(`/api/admin/organizations/${organizationId}`)
+                .then((res) => (res.ok ? res.json() : null))
+                .then((data) => {
+                    if (data?.organization) setOrganizationLabel(data.organization.name);
+                });
+        }
+    }, [organizationId, organizationLabel]);
+
     const fetchUsers = useCallback(async () => {
         setLoading(true);
 
+        // Build query params from the current filters
         const params = new URLSearchParams();
         if (search) params.set('search', search);
         if (roleFilter) params.set('role', roleFilter);
         if (statusFilter) params.set('status', statusFilter);
-        params.set('page', String(page));
+        if (organizationId) params.set('organization_id', String(organizationId));
+        if (page > 1) params.set('page', String(page));
 
-        const res = await api(`/api/admin/users?${params.toString()}`);
+        // Reflect the current view in the URL (bookmarkable / shareable)
+        const query = params.toString();
+        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+
+        const res = await api(`/api/admin/users?${query}`);
         if (res.ok) {
             const data = await res.json();
             setUsers(data);
         }
 
         setLoading(false);
-    }, [search, roleFilter, statusFilter, page]);
+    }, [search, roleFilter, statusFilter, organizationId, page, pathname, router]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -92,23 +121,12 @@ export default function UsersPage() {
     };
 
     if (authLoading) {
-        return <div className="p-8 text-text-secondary">Loading...</div>;
+        return <div className="p-8 text-text-secondary"><Spinner label="Loading..." /></div>;
     }
 
     return (
-        <main className="min-h-screen bg-background p-8">
-            <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-text-primary">User Management</h1>
-                <div className="flex items-center gap-3">
-                    <ThemeToggle />
-                    <Link
-                        href="/dashboard"
-                        className="rounded border border-border-token bg-surface px-4 py-2 text-sm text-text-primary hover:bg-surface-hover"
-                    >
-                        ← Dashboard
-                    </Link>
-                </div>
-            </div>
+        <div className="p-8">
+            <h1 className="mb-6 text-2xl font-bold text-text-primary">User Management</h1>
 
             <div className="mb-4 flex flex-wrap gap-3">
                 <input
@@ -151,6 +169,15 @@ export default function UsersPage() {
                         </option>
                     ))}
                 </select>
+                <OrganizationCombobox
+                    value={organizationId}
+                    label={organizationLabel}
+                    onChange={(id, label) => {
+                        setOrganizationId(id);
+                        setOrganizationLabel(label);
+                        setPage(1);
+                    }}
+                />
             </div>
 
             <div className="overflow-x-auto rounded-lg border border-border-token bg-surface shadow-sm">
@@ -161,6 +188,7 @@ export default function UsersPage() {
                             <th className="px-4 py-3 font-medium">Name</th>
                             <th className="px-4 py-3 font-medium">Email</th>
                             <th className="px-4 py-3 font-medium">Role</th>
+                            <th className="px-4 py-3 font-medium">Organization</th>
                             <th className="px-4 py-3 font-medium">Status</th>
                             <th className="px-4 py-3 font-medium">Actions</th>
                         </tr>
@@ -168,15 +196,15 @@ export default function UsersPage() {
                     <tbody>
                         {loading && (
                             <tr>
-                                <td colSpan={5} className="px-4 py-8 text-center text-text-muted">
-                                    Loading...
+                                <td colSpan={6} className="px-4 py-8 text-center text-text-muted">
+                                    <Spinner label="Loading users..." />
                                 </td>
                             </tr>
                         )}
 
                         {!loading && users && users.data.length === 0 && (
                             <tr>
-                                <td colSpan={5} className="px-4 py-8 text-center text-text-muted">
+                                <td colSpan={6} className="px-4 py-8 text-center text-text-muted">
                                     No users found
                                 </td>
                             </tr>
@@ -202,6 +230,7 @@ export default function UsersPage() {
                                     </td>
                                     <td className="px-4 py-3 text-text-primary">{u.email}</td>
                                     <td className="px-4 py-3 text-text-secondary">{getLabel(u.role)}</td>
+                                    <td className="px-4 py-3 text-text-secondary">{u.organization?.name ?? '—'}</td>
                                     <td className="px-4 py-3">
                                         <span
                                             className={`rounded px-2 py-1 text-xs font-medium ${
@@ -268,6 +297,15 @@ export default function UsersPage() {
                     onChanged={fetchUsers}
                 />
             )}
-        </main>
+        </div>
+    );
+}
+
+// useSearchParams() must be read inside a Suspense boundary in the App Router
+export default function UsersPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-text-secondary">Loading...</div>}>
+            <UsersPageContent />
+        </Suspense>
     );
 }

@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import ThemeToggle from '@/components/ThemeToggle';
 
@@ -73,10 +74,19 @@ export default function LoginPage() {
                 <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full rounded bg-primary py-2 font-medium text-primary-text hover:bg-primary-hover disabled:opacity-50"
+                    className="cursor-pointer w-full rounded bg-primary py-2 font-medium text-primary-text hover:bg-primary-hover disabled:opacity-50"
                 >
                     {submitting ? 'Signing in...' : 'Sign in'}
                 </button>
+
+                <div className="flex items-center justify-between text-sm">
+                    <Link href="/forgot-password" className="text-primary hover:underline">
+                        Forgot password?
+                    </Link>
+                    <Link href="/signup" className="text-primary hover:underline">
+                        Create an account
+                    </Link>
+                </div>
             </form>
         </main>
     );
