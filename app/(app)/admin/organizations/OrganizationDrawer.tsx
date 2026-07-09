@@ -11,22 +11,71 @@ interface Props {
 }
 
 interface OrgForm {
+    // Core identity
     name: string;
-    country: string;
-    type: string;
-    note: string;
+    registration_number: string;
     legal_status: string;
-    register_no: string;
+    type: string;
+    founded_year: string;
+    // Location
+    registered_country: string;
+    registered_state_province: string;
+    registered_city: string;
+    registered_address_line1: string;
+    registered_address_line2: string;
+    postcode_zipcode: string;
+    // Contact
+    contact_email: string;
+    contact_phone: string;
+    website_url: string;
+    // Social
+    social_facebook: string;
+    social_linkedin: string;
+    social_twitter: string;
+    social_instagram: string;
+    social_youtube: string;
+    social_whatsapp: string;
+    // Financials
+    currency: string;
+    annual_income: string;
+    annual_expenditure: string;
+    reserves_policy: string;
+    // Metadata
+    status: string;
+    note: string;
 }
 
 const emptyForm: OrgForm = {
     name: '',
-    country: '',
-    type: '',
-    note: '',
+    registration_number: '',
     legal_status: '',
-    register_no: '',
+    type: '',
+    founded_year: '',
+    registered_country: '',
+    registered_state_province: '',
+    registered_city: '',
+    registered_address_line1: '',
+    registered_address_line2: '',
+    postcode_zipcode: '',
+    contact_email: '',
+    contact_phone: '',
+    website_url: '',
+    social_facebook: '',
+    social_linkedin: '',
+    social_twitter: '',
+    social_instagram: '',
+    social_youtube: '',
+    social_whatsapp: '',
+    currency: 'GBP',
+    annual_income: '',
+    annual_expenditure: '',
+    reserves_policy: '',
+    status: 'pending',
+    note: '',
 };
+
+const STATUS_OPTIONS = ['pending', 'verified', 'off'];
+const CURRENCY_OPTIONS = ['GBP', 'USD', 'EUR', 'NGN', 'KES', 'ZAR'];
 
 export default function OrganizationDrawer({ orgId, onClose, onChanged }: Props) {
     const isCreate = orgId === null;
@@ -65,14 +114,17 @@ export default function OrganizationDrawer({ orgId, onClose, onChanged }: Props)
         api(`/api/admin/organizations/${orgId}`)
             .then((res) => res.json())
             .then((data) => {
+                const o = data.organization;
+                // Map every field, coercing null/number to a string for the inputs
                 const values: OrgForm = {
-                    name: data.organization.name ?? '',
-                    country: data.organization.country ?? '',
-                    type: data.organization.type ?? '',
-                    note: data.organization.note ?? '',
-                    legal_status: data.organization.legal_status ?? '',
-                    register_no: data.organization.register_no ?? '',
-                };
+                    ...emptyForm,
+                    ...Object.fromEntries(
+                        (Object.keys(emptyForm) as (keyof OrgForm)[]).map((k) => [
+                            k,
+                            o[k] === null || o[k] === undefined ? emptyForm[k] : String(o[k]),
+                        ]),
+                    ),
+                } as OrgForm;
                 setForm(values);
                 setOriginal(values);
                 setLoaded(true);
@@ -111,41 +163,71 @@ export default function OrganizationDrawer({ orgId, onClose, onChanged }: Props)
                 setOriginal({ ...form });
             }
         } else {
-            setSaveMessage({ type: 'error', text: data.message ?? 'Save failed' });
+            const firstError = data.errors
+                ? (Object.values(data.errors)[0] as string[])[0]
+                : data.message;
+            setSaveMessage({ type: 'error', text: firstError ?? 'Save failed' });
         }
 
         setSaving(false);
     };
 
+    const set = (key: keyof OrgForm, value: string) =>
+        setForm((f) => ({ ...f, [key]: value }));
+
     const field = (
         label: string,
         key: keyof OrgForm,
-        options?: { required?: boolean; textarea?: boolean; placeholder?: string },
+        options?: {
+            required?: boolean;
+            textarea?: boolean;
+            type?: 'text' | 'email' | 'url' | 'number';
+            placeholder?: string;
+            select?: string[];
+        },
     ) => (
         <div>
             <label className="block text-sm font-medium text-text-secondary">
                 {label}
                 {options?.required && <span className="text-danger"> *</span>}
             </label>
-            {options?.textarea ? (
+            {options?.select ? (
+                <select
+                    value={form[key]}
+                    onChange={(e) => set(key, e.target.value)}
+                    className="mt-1 w-full rounded border border-border-token bg-surface px-3 py-2 text-text-primary focus:border-primary focus:outline-none"
+                >
+                    {options.select.map((opt) => (
+                        <option key={opt} value={opt}>
+                            {opt}
+                        </option>
+                    ))}
+                </select>
+            ) : options?.textarea ? (
                 <textarea
                     value={form[key]}
-                    onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                    onChange={(e) => set(key, e.target.value)}
                     rows={3}
                     placeholder={options?.placeholder}
                     className="mt-1 w-full rounded border border-border-token bg-surface px-3 py-2 text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none"
                 />
             ) : (
                 <input
-                    type="text"
+                    type={options?.type ?? 'text'}
                     value={form[key]}
-                    onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                    onChange={(e) => set(key, e.target.value)}
                     required={options?.required}
                     placeholder={options?.placeholder}
                     className="mt-1 w-full rounded border border-border-token bg-surface px-3 py-2 text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none"
                 />
             )}
         </div>
+    );
+
+    const section = (title: string) => (
+        <h3 className="border-b border-border-token pb-1 pt-2 text-sm font-semibold uppercase tracking-wide text-text-muted">
+            {title}
+        </h3>
     );
 
     return (
@@ -158,17 +240,17 @@ export default function OrganizationDrawer({ orgId, onClose, onChanged }: Props)
             />
 
             <div
-                className={`fixed right-0 top-0 z-50 h-full w-full overflow-y-auto border-l border-border-token bg-surface shadow-xl transition-transform duration-300 ease-out sm:w-[440px] ${
+                className={`fixed right-0 top-0 z-50 h-full w-full overflow-y-auto border-l border-border-token bg-surface shadow-xl transition-transform duration-300 ease-out sm:w-[520px] ${
                     visible ? 'translate-x-0' : 'translate-x-full'
                 }`}
             >
-                <div className="flex items-center justify-between border-b border-border-token p-4">
+                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border-token bg-surface p-4">
                     <h2 className="text-lg font-bold text-text-primary">
                         {isCreate ? 'New Organization' : form.name || 'Organization'}
                     </h2>
                     <button
                         onClick={handleClose}
-                        className="text-xl text-text-muted hover:text-text-primary"
+                        className="cursor-pointer text-xl text-text-muted hover:text-text-primary"
                     >
                         ✕
                     </button>
@@ -191,22 +273,64 @@ export default function OrganizationDrawer({ orgId, onClose, onChanged }: Props)
                                 </div>
                             )}
 
+                            {section('Core identity')}
                             {field('Name', 'name', { required: true })}
-                            {field('Country code', 'country', {
-                                required: true,
-                                placeholder: 'US, GB, NG...',
+                            {field('Registration number', 'registration_number')}
+                            {field('Legal status', 'legal_status', {
+                                placeholder: 'Registered Charity, Non-Profit...',
                             })}
                             {field('Type', 'type', {
                                 placeholder: 'NGO, Charity, Foundation...',
                             })}
-                            {field('Legal status', 'legal_status')}
-                            {field('Register number', 'register_no')}
+                            {field('Founded year', 'founded_year', {
+                                type: 'number',
+                                placeholder: '2015',
+                            })}
+
+                            {section('Location')}
+                            {field('Country', 'registered_country')}
+                            {field('State / Province', 'registered_state_province')}
+                            {field('City', 'registered_city')}
+                            {field('Address line 1', 'registered_address_line1')}
+                            {field('Address line 2', 'registered_address_line2')}
+                            {field('Postcode / ZIP', 'postcode_zipcode')}
+
+                            {section('Contact')}
+                            {field('Contact email', 'contact_email', { type: 'email' })}
+                            {field('Contact phone', 'contact_phone')}
+                            {field('Website URL', 'website_url', {
+                                type: 'url',
+                                placeholder: 'https://...',
+                            })}
+
+                            {section('Social')}
+                            {field('Facebook', 'social_facebook')}
+                            {field('LinkedIn', 'social_linkedin')}
+                            {field('Twitter / X', 'social_twitter')}
+                            {field('Instagram', 'social_instagram')}
+                            {field('YouTube', 'social_youtube')}
+                            {field('WhatsApp', 'social_whatsapp')}
+
+                            {section('Financials')}
+                            {field('Currency', 'currency', { select: CURRENCY_OPTIONS })}
+                            {field('Annual income', 'annual_income', {
+                                type: 'number',
+                                placeholder: '0.00',
+                            })}
+                            {field('Annual expenditure', 'annual_expenditure', {
+                                type: 'number',
+                                placeholder: '0.00',
+                            })}
+                            {field('Reserves policy', 'reserves_policy', { textarea: true })}
+
+                            {section('Metadata')}
+                            {field('Status', 'status', { select: STATUS_OPTIONS })}
                             {field('Note', 'note', { textarea: true })}
 
                             <button
                                 type="submit"
                                 disabled={saving || !isDirty}
-                                className="w-full rounded bg-primary py-2 font-medium text-primary-text hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                                className="w-full cursor-pointer rounded bg-primary py-2 font-medium text-primary-text hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {saving
                                     ? 'Saving...'

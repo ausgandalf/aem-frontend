@@ -11,11 +11,11 @@ import OrganizationDrawer from './OrganizationDrawer';
 export interface Organization {
     id: number;
     name: string;
-    country: string;
-    type: string | null;
-    note: string | null;
+    registration_number: string | null;
     legal_status: string | null;
-    register_no: string | null;
+    type: string | null;
+    registered_country: string | null;
+    status: string;
     users_count: number;
     created_at: string;
 }
@@ -28,6 +28,8 @@ interface Paginated<T> {
     total: number;
 }
 
+const STATUS_OPTIONS = ['pending', 'verified', 'off'];
+
 function OrganizationsPageContent() {
     const router = useRouter();
     const pathname = usePathname();
@@ -38,6 +40,7 @@ function OrganizationsPageContent() {
     const [loading, setLoading] = useState(true);
     // Search + pagination initialize from the URL so the view is bookmarkable
     const [search, setSearch] = useState(searchParams.get('search') ?? '');
+    const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? '');
     const [page, setPage] = useState(Number(searchParams.get('page') ?? '1'));
     const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
     const [creating, setCreating] = useState(false);
@@ -57,6 +60,7 @@ function OrganizationsPageContent() {
 
         const params = new URLSearchParams();
         if (search) params.set('search', search);
+        if (statusFilter) params.set('status', statusFilter);
         if (page > 1) params.set('page', String(page));
 
         // Reflect the current view in the URL (bookmarkable / shareable)
@@ -69,7 +73,7 @@ function OrganizationsPageContent() {
         }
 
         setLoading(false);
-    }, [search, page, pathname, router]);
+    }, [search, statusFilter, page, pathname, router]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -107,7 +111,7 @@ function OrganizationsPageContent() {
             <div className="mb-4 flex flex-wrap items-center gap-3">
                 <input
                     type="text"
-                    placeholder="Search name, register no, type..."
+                    placeholder="Search name, reg. no, type, country..."
                     value={search}
                     onChange={(e) => {
                         setSearch(e.target.value);
@@ -115,6 +119,21 @@ function OrganizationsPageContent() {
                     }}
                     className="w-72 rounded border border-border-token bg-surface px-3 py-2 text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none"
                 />
+                <select
+                    value={statusFilter}
+                    onChange={(e) => {
+                        setStatusFilter(e.target.value);
+                        setPage(1);
+                    }}
+                    className="rounded border border-border-token bg-surface px-3 py-2 text-text-primary focus:border-primary focus:outline-none"
+                >
+                    <option value="">All statuses</option>
+                    {STATUS_OPTIONS.map((s) => (
+                        <option key={s} value={s}>
+                            {s}
+                        </option>
+                    ))}
+                </select>
                 <button
                     onClick={() => setCreating(true)}
                     className="cursor-pointer rounded bg-primary px-4 py-2 text-sm font-medium text-primary-text hover:bg-primary-hover"
@@ -129,9 +148,10 @@ function OrganizationsPageContent() {
                         <tr className="text-text-secondary">
                             <th className="w-12 px-4 py-3 font-medium">#</th>
                             <th className="px-4 py-3 font-medium">Name</th>
-                            <th className="px-4 py-3 font-medium">Country</th>
                             <th className="px-4 py-3 font-medium">Type</th>
-                            <th className="px-4 py-3 font-medium">Register No</th>
+                            <th className="px-4 py-3 font-medium">Country</th>
+                            <th className="px-4 py-3 font-medium">Reg. No</th>
+                            <th className="px-4 py-3 font-medium">Status</th>
                             <th className="px-4 py-3 font-medium">Users</th>
                             <th className="px-4 py-3 font-medium">Actions</th>
                         </tr>
@@ -139,7 +159,7 @@ function OrganizationsPageContent() {
                     <tbody>
                         {loading && (
                             <tr>
-                                <td colSpan={7}>
+                                <td colSpan={8}>
                                     <Spinner label="Loading organizations..." />
                                 </td>
                             </tr>
@@ -148,7 +168,7 @@ function OrganizationsPageContent() {
                         {!loading && orgs && orgs.data.length === 0 && (
                             <tr>
                                 <td
-                                    colSpan={7}
+                                    colSpan={8}
                                     className="px-4 py-8 text-center text-text-muted"
                                 >
                                     No organizations found
@@ -175,13 +195,26 @@ function OrganizationsPageContent() {
                                         </button>
                                     </td>
                                     <td className="px-4 py-3 text-text-secondary">
-                                        {org.country}
-                                    </td>
-                                    <td className="px-4 py-3 text-text-secondary">
                                         {org.type ?? '—'}
                                     </td>
                                     <td className="px-4 py-3 text-text-secondary">
-                                        {org.register_no ?? '—'}
+                                        {org.registered_country ?? '—'}
+                                    </td>
+                                    <td className="px-4 py-3 text-text-secondary">
+                                        {org.registration_number ?? '—'}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <span
+                                            className={`rounded px-2 py-1 text-xs font-medium ${
+                                                org.status === 'verified'
+                                                    ? 'bg-success-bg text-success-text'
+                                                    : org.status === 'pending'
+                                                      ? 'bg-warning-bg text-warning-text'
+                                                      : 'bg-danger-bg text-danger-text'
+                                            }`}
+                                        >
+                                            {org.status}
+                                        </span>
                                     </td>
                                     <td className="px-4 py-3 text-text-primary">
                                         <Link
