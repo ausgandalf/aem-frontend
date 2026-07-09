@@ -17,13 +17,20 @@ interface OrgForm {
     legal_status: string;
     type: string;
     founded_year: string;
-    // Location
+    // Registered address
     registered_country: string;
     registered_state_province: string;
     registered_city: string;
     registered_address_line1: string;
     registered_address_line2: string;
-    postcode_zipcode: string;
+    registered_postal_code: string;
+    // Operating / correspondence address
+    current_country: string;
+    current_state_province: string;
+    current_city: string;
+    current_address_line1: string;
+    current_address_line2: string;
+    current_postal_code: string;
     // Contact
     contact_email: string;
     contact_phone: string;
@@ -56,7 +63,13 @@ const emptyForm: OrgForm = {
     registered_city: '',
     registered_address_line1: '',
     registered_address_line2: '',
-    postcode_zipcode: '',
+    registered_postal_code: '',
+    current_country: '',
+    current_state_province: '',
+    current_city: '',
+    current_address_line1: '',
+    current_address_line2: '',
+    current_postal_code: '',
     contact_email: '',
     contact_phone: '',
     website_url: '',
@@ -82,6 +95,9 @@ export default function OrganizationDrawer({ orgId, onClose, onChanged }: Props)
 
     const [form, setForm] = useState<OrgForm>(emptyForm);
     const [original, setOriginal] = useState<OrgForm>(emptyForm);
+    // Tracked separately from the string form since it's a boolean
+    const [sameAsReg, setSameAsReg] = useState(true);
+    const [origSameAsReg, setOrigSameAsReg] = useState(true);
     const [loaded, setLoaded] = useState(isCreate);
     const [saving, setSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState<{
@@ -127,24 +143,43 @@ export default function OrganizationDrawer({ orgId, onClose, onChanged }: Props)
                 } as OrgForm;
                 setForm(values);
                 setOriginal(values);
+                const same = o.current_same_as_registered ?? true;
+                setSameAsReg(same);
+                setOrigSameAsReg(same);
                 setLoaded(true);
             });
     }, [orgId]);
 
-    const isDirty = (Object.keys(form) as (keyof OrgForm)[]).some(
-        (key) => form[key] !== original[key],
-    );
+    const isDirty =
+        (Object.keys(form) as (keyof OrgForm)[]).some((key) => form[key] !== original[key]) ||
+        sameAsReg !== origSameAsReg;
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         setSaveMessage(null);
 
+        // If the operating address mirrors the registered one, don't send stale values
+        const payload = {
+            ...form,
+            current_same_as_registered: sameAsReg,
+            ...(sameAsReg
+                ? {
+                      current_country: '',
+                      current_state_province: '',
+                      current_city: '',
+                      current_address_line1: '',
+                      current_address_line2: '',
+                      current_postal_code: '',
+                  }
+                : {}),
+        };
+
         const res = await api(
             isCreate ? '/api/admin/organizations' : `/api/admin/organizations/${orgId}`,
             {
                 method: isCreate ? 'POST' : 'PATCH',
-                body: JSON.stringify(form),
+                body: JSON.stringify(payload),
             },
         );
 
@@ -161,6 +196,7 @@ export default function OrganizationDrawer({ orgId, onClose, onChanged }: Props)
                 setTimeout(handleClose, 800);
             } else {
                 setOriginal({ ...form });
+                setOrigSameAsReg(sameAsReg);
             }
         } else {
             const firstError = data.errors
@@ -287,13 +323,34 @@ export default function OrganizationDrawer({ orgId, onClose, onChanged }: Props)
                                 placeholder: '2015',
                             })}
 
-                            {section('Location')}
+                            {section('Registered address')}
                             {field('Country', 'registered_country')}
                             {field('State / Province', 'registered_state_province')}
                             {field('City', 'registered_city')}
                             {field('Address line 1', 'registered_address_line1')}
                             {field('Address line 2', 'registered_address_line2')}
-                            {field('Postcode / ZIP', 'postcode_zipcode')}
+                            {field('Postcode / ZIP', 'registered_postal_code')}
+
+                            {section('Operating / correspondence address')}
+                            <label className="flex items-center gap-2 text-sm text-text-primary">
+                                <input
+                                    type="checkbox"
+                                    checked={sameAsReg}
+                                    onChange={(e) => setSameAsReg(e.target.checked)}
+                                    className="h-4 w-4 rounded border-border-token"
+                                />
+                                Same as registered address
+                            </label>
+                            {!sameAsReg && (
+                                <>
+                                    {field('Country', 'current_country')}
+                                    {field('State / Province', 'current_state_province')}
+                                    {field('City', 'current_city')}
+                                    {field('Address line 1', 'current_address_line1')}
+                                    {field('Address line 2', 'current_address_line2')}
+                                    {field('Postcode / ZIP', 'current_postal_code')}
+                                </>
+                            )}
 
                             {section('Contact')}
                             {field('Contact email', 'contact_email', { type: 'email' })}

@@ -32,6 +32,7 @@ interface UserDetail {
     status: string;
     organization_id: number | null;
     organization: { id: number; name: string } | null;
+    position: string | null;
     preferred_contact: string[] | null;
     created_at: string;
 }
@@ -58,6 +59,7 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
         phone: '',
         role: '',
         organization_id: null as number | null,
+        position: '',
         preferred_contact: [] as string[],
     });
     const [original, setOriginal] = useState({
@@ -67,6 +69,7 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
         phone: '',
         role: '',
         organization_id: null as number | null,
+        position: '',
         preferred_contact: [] as string[],
     });
     // Display label for the organization combobox (not part of dirty-tracking)
@@ -110,6 +113,7 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
                     phone: data.user.phone ?? '',
                     role: data.user.role ?? '',
                     organization_id: data.user.organization_id ?? null,
+                    position: data.user.position ?? '',
                     preferred_contact: data.user.preferred_contact ?? [],
                 };
                 setForm(values);
@@ -239,6 +243,10 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
                             <div>
                                 <span className="text-text-secondary">Organization:</span>{' '}
                                 {user.organization?.name ?? '—'}
+                            </div>
+                            <div>
+                                <span className="text-text-secondary">Position:</span>{' '}
+                                {user.position ?? '—'}
                             </div>
                             <div>
                                 <span className="text-text-secondary">Status:</span> {user.status}
@@ -376,6 +384,19 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
                                         }}
                                     />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-text-secondary">
+                                    Position
+                                </label>
+                                <input
+                                    type="text"
+                                    value={form.position}
+                                    onChange={(e) => setForm({ ...form, position: e.target.value })}
+                                    placeholder="Job title / position"
+                                    className="mt-1 w-full rounded border border-border-token bg-surface px-3 py-2 text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none"
+                                />
                             </div>
 
                             <button
