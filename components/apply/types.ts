@@ -117,6 +117,63 @@ export const initialApplyData: ApplyFormData = {
     },
 };
 
+// ── Applicant dashboard shapes ──────────────────────────────
+
+export interface ApplicationCard {
+    id: number;
+    project_title: string;
+    requested_amount: string | null;
+    currency: string;
+    current_stage: string | null;
+    current_status: string;
+    prev_stage: string | null;
+    prev_status: string | null;
+    created_at: string;
+}
+
+export interface ProgressStage {
+    key: string;
+    label: string;
+    order: number;
+    status: string | null;
+    note: string | null;
+}
+
+export interface ApplicationDetail {
+    id: number;
+    project_title: string;
+    project_location: string | null;
+    requested_amount: string | null;
+    currency: string;
+    project_details: Partial<ProjectDetailsData> | null;
+    organization_id: number | null;
+    organization: { id: number; name: string } | null;
+    current_stage: string | null;
+    current_status: string;
+}
+
+// Map a loaded application into the org+project form shape for editing.
+export function applicationToFormData(app: ApplicationDetail): ApplyFormData {
+    return {
+        applicant: initialApplyData.applicant, // unused in authenticated mode
+        organization: {
+            ...initialApplyData.organization,
+            organization_id: app.organization_id,
+            label: app.organization?.name ?? '',
+        },
+        project: {
+            project_title: app.project_title ?? '',
+            currency: app.currency ?? 'GBP',
+            requested_amount: app.requested_amount != null ? String(app.requested_amount) : '',
+            project_location: app.project_location ?? '',
+            project_details: {
+                ...initialApplyData.project.project_details,
+                ...(app.project_details ?? {}),
+            },
+        },
+    };
+}
+
 // Build the POST /api/apply payload from the form state.
 // Only sends the org register fields when no existing org was selected.
 export function buildApplyPayload(data: ApplyFormData, includeApplicant: boolean) {

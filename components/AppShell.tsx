@@ -11,13 +11,14 @@ import UserMenu from '@/components/UserMenu';
 interface NavItem {
     href: string;
     label: string;
-    adminOnly?: boolean;
+    role?: string; // if set, only shown to users holding this role
 }
 
 const NAV_ITEMS: NavItem[] = [
     { href: '/dashboard', label: 'Dashboard' },
-    { href: '/admin/users', label: 'Users', adminOnly: true },
-    { href: '/admin/organizations', label: 'Organizations', adminOnly: true },
+    { href: '/applications', label: 'My Applications', role: 'applicant' },
+    { href: '/admin/users', label: 'Users', role: 'admin' },
+    { href: '/admin/organizations', label: 'Organizations', role: 'admin' },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -42,7 +43,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     if (!user) return null;
 
     const visibleItems = NAV_ITEMS.filter(
-        (item) => !item.adminOnly || roles.includes('admin')
+        (item) => !item.role || roles.includes(item.role)
     );
 
     // Shared sidebar body, reused by the desktop rail and the mobile drawer
