@@ -64,10 +64,10 @@ export default function AddressFields({ value, onChange, required, idPrefix }: P
             {input('address_line2', 'Address line 2')}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {input('city', 'City', { required })}
-                {input('state_province', 'State / Province')}
+                {input('state_province', 'State / Province', { required })}
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {input('postal_code', 'Postcode / ZIP')}
+                {input('postal_code', 'Postcode / ZIP', { required })}
                 {input('country', 'Country', { required })}
             </div>
         </div>

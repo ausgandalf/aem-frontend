@@ -45,11 +45,12 @@ export default function ProjectDetailsStep({ value, onChange }: Props) {
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div>
-                        <LabelWithTip label="Currency" tip={PROJECT_TIPS.currency} htmlFor="proj-currency" />
+                        <LabelWithTip label="Currency" required tip={PROJECT_TIPS.currency} htmlFor="proj-currency" />
                         <select
                             id="proj-currency"
                             value={value.currency}
                             onChange={(e) => onChange({ currency: e.target.value })}
+                            required
                             className="mt-1 w-full rounded border border-border-token bg-surface px-3 py-2 text-text-primary focus:border-primary focus:outline-none"
                         >
                             {CURRENCY_OPTIONS.map((c) => (

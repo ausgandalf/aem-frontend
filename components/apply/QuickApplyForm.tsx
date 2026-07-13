@@ -31,6 +31,7 @@ export default function QuickApplyForm({
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [done, setDone] = useState(false);
+    const [doneMessage, setDoneMessage] = useState('');
     const formRef = useRef<HTMLFormElement>(null);
 
     const updateApplicant = (patch: Partial<ApplicantData>) =>
@@ -104,6 +105,7 @@ export default function QuickApplyForm({
         const body = await res.json();
 
         if (res.ok) {
+            setDoneMessage(body.message ?? '');
             setDone(true);
             onSuccess?.(body.application_id);
         } else {
@@ -118,11 +120,10 @@ export default function QuickApplyForm({
     if (done) {
         return (
             <div className="rounded-lg border border-border-token bg-surface p-8 text-center shadow-sm">
-                <h2 className="text-2xl font-bold text-text-primary">Application submitted</h2>
+                <h2 className="text-2xl font-bold text-text-primary">Draft saved</h2>
                 <p className="mt-3 text-sm text-text-secondary">
-                    Thank you. We&apos;ve received your application and sent a confirmation to your email.
-                    {includeAboutYou &&
-                        ' Please also click the verification link we sent to confirm your email address.'}
+                    {doneMessage ||
+                        'We’ve saved your application as a draft. Sign in to WRBLO to review and submit it.'}
                 </p>
             </div>
         );
