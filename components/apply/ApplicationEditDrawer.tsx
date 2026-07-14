@@ -51,9 +51,17 @@ export default function ApplicationEditDrawer({ applicationId, onClose, onSaved 
     useEffect(() => {
         if (applicationId === null) return;
         api(`/api/applications/${applicationId}`)
-            .then((res) => res.json())
-            .then((body) => {
-                setData(applicationToFormData(body.application));
+            .then(async (res) => {
+                const body = await res.json();
+                if (res.ok && body.application) {
+                    setData(applicationToFormData(body.application));
+                } else {
+                    setError(body.message ?? 'Could not load this application.');
+                }
+                setLoaded(true);
+            })
+            .catch(() => {
+                setError('Could not load this application.');
                 setLoaded(true);
             });
     }, [applicationId]);

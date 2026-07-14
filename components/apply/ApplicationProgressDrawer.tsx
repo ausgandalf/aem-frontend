@@ -37,12 +37,15 @@ export default function ApplicationProgressDrawer({ applicationId, onClose }: Pr
 
     useEffect(() => {
         api(`/api/applications/${applicationId}`)
-            .then((res) => res.json())
-            .then((body) => {
-                setApplication(body.application);
-                setProgress(body.progress ?? []);
+            .then(async (res) => {
+                const body = await res.json();
+                if (res.ok && body.application) {
+                    setApplication(body.application);
+                    setProgress(body.progress ?? []);
+                }
                 setLoaded(true);
-            });
+            })
+            .catch(() => setLoaded(true));
     }, [applicationId]);
 
     return (

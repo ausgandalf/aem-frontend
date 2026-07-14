@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { useRoles } from '@/context/RolesContext';
 import Spinner from '@/components/Spinner';
 import OrganizationCombobox from '@/components/OrganizationCombobox';
+import ChangePasswordModal from './ChangePasswordModal';
 
 interface Props {
     userId: number;
@@ -51,6 +52,7 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
     const [logs, setLogs] = useState<Log[]>([]);
     const [logsLoaded, setLogsLoaded] = useState(false);
     const [visible, setVisible] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
     const { roles: availableRoles, getLabel } = useRoles();
     const [form, setForm] = useState({
         first_name: '',
@@ -255,6 +257,15 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
                                 <span className="text-text-secondary">Joined:</span>{' '}
                                 {new Date(user.created_at).toLocaleDateString()}
                             </div>
+
+                            <div className="border-t border-border-token pt-4">
+                                <button
+                                    onClick={() => setShowPasswordModal(true)}
+                                    className="cursor-pointer rounded border border-border-token bg-surface px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-hover"
+                                >
+                                    Change password
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -440,6 +451,14 @@ export default function UserDrawer({ userId, onClose, onChanged }: Props) {
                     )}
                 </div>
             </div>
+
+            {showPasswordModal && user && (
+                <ChangePasswordModal
+                    userId={user.id}
+                    userName={`${user.first_name} ${user.last_name}`}
+                    onClose={() => setShowPasswordModal(false)}
+                />
+            )}
         </>
     );
 }

@@ -17,6 +17,7 @@ interface User {
     phone: string | null;
     role: string;
     status: string;
+    email_verified_at: string | null;
     organization: { id: number; name: string } | null;
     created_at: string;
 }
@@ -120,6 +121,19 @@ function UsersPageContent() {
         }
     };
 
+    const handleToggleVerify = async (userId: number) => {
+        const res = await api(`/api/admin/users/${userId}/verify-email`, {
+            method: 'PATCH',
+        });
+
+        if (res.ok) {
+            fetchUsers();
+        } else {
+            const data = await res.json();
+            alert(data.message ?? 'Action failed');
+        }
+    };
+
     if (authLoading) {
         return <div className="p-8 text-text-secondary"><Spinner label="Loading..." /></div>;
     }
@@ -189,6 +203,7 @@ function UsersPageContent() {
                             <th className="px-4 py-3 font-medium">Email</th>
                             <th className="px-4 py-3 font-medium">Role</th>
                             <th className="px-4 py-3 font-medium">Organization</th>
+                            <th className="px-4 py-3 font-medium">Verified</th>
                             <th className="px-4 py-3 font-medium">Status</th>
                             <th className="px-4 py-3 font-medium">Actions</th>
                         </tr>
@@ -196,7 +211,7 @@ function UsersPageContent() {
                     <tbody>
                         {loading && (
                             <tr>
-                                <td colSpan={6} className="px-4 py-8 text-center text-text-muted">
+                                <td colSpan={8} className="px-4 py-8 text-center text-text-muted">
                                     <Spinner label="Loading users..." />
                                 </td>
                             </tr>
@@ -204,7 +219,7 @@ function UsersPageContent() {
 
                         {!loading && users && users.data.length === 0 && (
                             <tr>
-                                <td colSpan={6} className="px-4 py-8 text-center text-text-muted">
+                                <td colSpan={8} className="px-4 py-8 text-center text-text-muted">
                                     No users found
                                 </td>
                             </tr>
@@ -231,6 +246,25 @@ function UsersPageContent() {
                                     <td className="px-4 py-3 text-text-primary">{u.email}</td>
                                     <td className="px-4 py-3 text-text-secondary">{getLabel(u.role)}</td>
                                     <td className="px-4 py-3 text-text-secondary">{u.organization?.name ?? '—'}</td>
+                                    <td className="px-4 py-3">
+                                        <div className="flex flex-col items-start gap-1">
+                                            <span
+                                                className={`rounded px-2 py-1 text-xs font-medium ${
+                                                    u.email_verified_at
+                                                        ? 'bg-success-bg text-success-text'
+                                                        : 'bg-surface-hover text-text-muted'
+                                                }`}
+                                            >
+                                                {u.email_verified_at ? 'Verified' : 'Unverified'}
+                                            </span>
+                                            <button
+                                                onClick={() => handleToggleVerify(u.id)}
+                                                className="cursor-pointer text-xs text-primary hover:underline"
+                                            >
+                                                {u.email_verified_at ? 'Unverify' : 'Verify'}
+                                            </button>
+                                        </div>
+                                    </td>
                                     <td className="px-4 py-3">
                                         <span
                                             className={`rounded px-2 py-1 text-xs font-medium ${
