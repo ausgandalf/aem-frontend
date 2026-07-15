@@ -53,7 +53,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="hidden sm:block">
                     <div className="flex items-center gap-2">
                         <Logo />
-                        <span className="text-lg font-bold text-text-primary">AEM</span>
+                        <span className="text-lg font-bold text-text-primary">ARM</span>
                     </div>
                 </div>
                 &nbsp;
@@ -132,7 +132,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                             </button>
                             <div className="flex items-center gap-2">
                                 <Logo width={80} />
-                                <span className="text-lg font-bold text-text-primary">AEM</span>
+                                <span className="text-lg font-bold text-text-primary">ARM</span>
                             </div>
                         </div>
                     </div>

@@ -35,7 +35,7 @@ export default function LoginPage() {
                 className="w-full max-w-md space-y-4 rounded-lg bg-surface border border-border-token p-8 shadow-sm"
             >
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-text-primary">Sign in to AEM</h1>
+                    <h1 className="text-2xl font-bold text-text-primary">Sign in to ARM</h1>
                     <ThemeToggle />
                 </div>
 

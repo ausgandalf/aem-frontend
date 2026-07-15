@@ -6,8 +6,8 @@ import { RolesProvider } from '@/context/RolesContext';
 import './globals.css';
 
 export const metadata: Metadata = {
-    title: 'AEM',
-    description: 'Application Management System',
+    title: 'ARM',
+    description: 'Applicant Relation Management',
 };
 
 export default function RootLayout({

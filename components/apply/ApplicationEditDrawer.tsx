@@ -125,7 +125,7 @@ export default function ApplicationEditDrawer({ applicationId, onClose, onSaved 
                     {!loaded ? (
                         <Spinner label="Loading application..." />
                     ) : (
-                        <form ref={formRef} className="mx-auto max-w-3xl space-y-8">
+                        <form ref={formRef} className="space-y-8">
                             {error && (
                                 <div className="rounded bg-danger-bg p-3 text-sm text-danger-text">
                                     {error}
