@@ -7,8 +7,9 @@
 :root {
     --background: #f8fafc;
     --surface: #ffffff;
+    --surface-dark: #d8e0e7;
     --surface-hover: #f1f5f9;
-    --border: #e2e8f0;
+    --border: #d1d8df;
 
     --selected: #dfcfad;
 
@@ -36,8 +37,9 @@
 .dark {
     --background: #0f172a;
     --surface: #1e293b;
+    --surface-dark: #2c394d;
     --surface-hover: #334155;
-    --border: #334155;
+    --border: #293444;
 
     --selected: #0f172a;
 
@@ -64,6 +66,7 @@
 @theme inline {
     --color-background: var(--background);
     --color-surface: var(--surface);
+    --color-surface-dark: var(--surface-dark);
     --color-surface-hover: var(--surface-hover);
     --color-selected: var(--selected);
     --color-border-token: var(--border);

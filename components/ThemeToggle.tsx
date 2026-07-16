@@ -15,12 +15,8 @@ export default function ThemeToggle() {
             {options.map(opt => (
                 <button
                     key={opt.value}
-                    onClick={
-                        (e) => {
-                            e.preventDefault();
-                            setTheme(opt.value);
-                        }
-                    }
+                    type="button" // buttons in a <form> default to type="submit" — without this, Enter triggers the theme instead of the login
+                    onClick={() => setTheme(opt.value)}
                     title={opt.value}
                     className={`cursor-pointer rounded px-2 py-1 text-sm transition ${
                         theme === opt.value

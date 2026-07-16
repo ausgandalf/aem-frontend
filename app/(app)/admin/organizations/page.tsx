@@ -144,7 +144,7 @@ function OrganizationsPageContent() {
 
             <div className="overflow-x-auto rounded-lg border border-border-token bg-surface shadow-sm">
                 <table className="w-full text-left text-sm">
-                    <thead className="border-b border-border-token bg-surface-hover">
+                    <thead className="border-b border-border-token bg-surface-dark">
                         <tr className="text-text-secondary">
                             <th className="w-12 px-4 py-3 font-medium">#</th>
                             <th className="px-4 py-3 font-medium">Name</th>

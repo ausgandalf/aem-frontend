@@ -128,6 +128,7 @@ export interface ApplicationCard {
     current_status: string;
     prev_stage: string | null;
     prev_status: string | null;
+    documents_count: number;
     created_at: string;
 }
 
@@ -150,6 +151,7 @@ export interface ApplicationDetail {
     organization: { id: number; name: string } | null;
     current_stage: string | null;
     current_status: string;
+    documents_count?: number;
 }
 
 // Map a loaded application into the org+project form shape for editing.

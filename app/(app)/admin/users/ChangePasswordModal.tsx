@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '@/lib/api';
 
 interface Props {
@@ -17,10 +18,13 @@ export default function ChangePasswordModal({ userId, userName, onClose }: Props
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
+            if (e.key !== 'Escape') return;
+            e.stopPropagation(); // don't let the drawer behind us also close
+            onClose();
         };
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
+        // Capture phase so we run before the drawer's own Escape listener
+        window.addEventListener('keydown', onKey, true);
+        return () => window.removeEventListener('keydown', onKey, true);
     }, [onClose]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -48,16 +52,23 @@ export default function ChangePasswordModal({ userId, userName, onClose }: Props
         }
     };
 
-    return (
-        <div
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
-            onClick={onClose}
-        >
+    // Portal to <body> so a transformed ancestor (drawer) can't trap the overlay
+    return createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
             <div
                 onClick={(e) => e.stopPropagation()}
                 className="w-full max-w-sm rounded-lg border border-border-token bg-surface p-6 shadow-xl"
             >
-                <h3 className="text-lg font-bold text-text-primary">Change password</h3>
+                <div className="flex items-start justify-between">
+                    <h3 className="text-lg font-bold text-text-primary">Change password</h3>
+                    <button
+                        onClick={onClose}
+                        aria-label="Close"
+                        className="cursor-pointer text-xl leading-none text-text-muted hover:text-text-primary"
+                    >
+                        ✕
+                    </button>
+                </div>
                 <p className="mb-4 text-sm text-text-muted">for {userName}</p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -122,6 +133,7 @@ export default function ChangePasswordModal({ userId, userName, onClose }: Props
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 }

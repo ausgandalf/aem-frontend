@@ -97,6 +97,10 @@ export default function ApplicationsPage() {
                                         <StatusBadge status={app.prev_status} />
                                     </span>
                                 </div>
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-text-secondary">Documents</span>
+                                    <span className="text-text-primary">📎 {app.documents_count}</span>
+                                </div>
                             </div>
 
                             {app.current_stage === 'submit' && (

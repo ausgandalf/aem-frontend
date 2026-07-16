@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import Spinner from '@/components/Spinner';
 import AboutOrganizationStep from './AboutOrganizationStep';
 import ProjectDetailsStep from './ProjectDetailsStep';
+import DocumentsPanel from './DocumentsPanel';
 import {
     ApplyFormData,
     OrganizationData,
@@ -20,13 +21,21 @@ interface Props {
     onSaved: () => void;
 }
 
-export default function ApplicationEditDrawer({ applicationId, onClose, onSaved }: Props) {
-    const isCreate = applicationId === null;
+type Tab = 'organization' | 'project' | 'documents';
 
+export default function ApplicationEditDrawer({ applicationId, onClose, onSaved }: Props) {
+    // Held in state so a create-mode Save can transition the drawer into
+    // edit mode in place (drawer stays open, documents become attachable).
+    const [appId, setAppId] = useState<number | null>(applicationId);
+    const isCreate = appId === null;
+
+    const [tab, setTab] = useState<Tab>('organization');
     const [data, setData] = useState<ApplyFormData>(initialApplyData);
-    const [loaded, setLoaded] = useState(isCreate);
+    const [loaded, setLoaded] = useState(applicationId === null);
     const [saving, setSaving] = useState<'save' | 'submit' | null>(null);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [docCount, setDocCount] = useState(0);
     const [visible, setVisible] = useState(false);
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -49,12 +58,13 @@ export default function ApplicationEditDrawer({ applicationId, onClose, onSaved 
     }, [handleClose]);
 
     useEffect(() => {
-        if (applicationId === null) return;
-        api(`/api/applications/${applicationId}`)
+        if (appId === null) return;
+        api(`/api/applications/${appId}`)
             .then(async (res) => {
                 const body = await res.json();
                 if (res.ok && body.application) {
                     setData(applicationToFormData(body.application));
+                    setDocCount(body.application.documents_count ?? 0);
                 } else {
                     setError(body.message ?? 'Could not load this application.');
                 }
@@ -64,7 +74,7 @@ export default function ApplicationEditDrawer({ applicationId, onClose, onSaved 
                 setError('Could not load this application.');
                 setLoaded(true);
             });
-    }, [applicationId]);
+    }, [appId]);
 
     const updateOrganization = (patch: Partial<OrganizationData>) =>
         setData((d) => ({ ...d, organization: { ...d.organization, ...patch } }));
@@ -72,28 +82,69 @@ export default function ApplicationEditDrawer({ applicationId, onClose, onSaved 
         setData((d) => ({ ...d, project: { ...d.project, ...patch } }));
 
     const handleAction = async (action: 'save' | 'submit') => {
-        if (!formRef.current?.reportValidity()) return;
+        // Validate the fields on the currently visible tab (native).
+        if ((tab === 'organization' || tab === 'project') && !formRef.current?.reportValidity()) {
+            return;
+        }
+
+        // Submitting with no supporting documents deserves a second thought.
+        if (
+            action === 'submit' &&
+            docCount === 0 &&
+            !confirm(
+                'You did not include any supporting documents. Are you sure you want to submit without them?',
+            )
+        ) {
+            return;
+        }
+
         setSaving(action);
         setError('');
+        setSuccess('');
 
         const payload = { ...buildApplyPayload(data, false), action };
-        const res = await api(
-            isCreate ? '/api/applications' : `/api/applications/${applicationId}`,
-            { method: isCreate ? 'POST' : 'PATCH', body: JSON.stringify(payload) },
-        );
+        const res = await api(isCreate ? '/api/applications' : `/api/applications/${appId}`, {
+            method: isCreate ? 'POST' : 'PATCH',
+            body: JSON.stringify(payload),
+        });
         const body = await res.json();
 
         if (res.ok) {
-            onSaved();
-            handleClose();
-        } else {
-            const firstError = body.errors
-                ? (Object.values(body.errors)[0] as string[])[0]
-                : body.message;
-            setError(firstError ?? 'Could not save. Please review your answers.');
+            onSaved(); // refresh the card list behind the drawer
+
+            if (action === 'submit') {
+                handleClose();
+                return;
+            }
+
+            // Save keeps the drawer open; a new application becomes editable in place
+            if (isCreate && body.application_id) {
+                setAppId(body.application_id);
+                setSuccess('Application saved. You can now attach documents in the Documents tab.');
+            } else {
+                setSuccess('Application saved.');
+            }
             setSaving(null);
+            return;
         }
+
+        // On validation failure, jump to the tab that owns the first bad field.
+        const firstKey = body.errors ? Object.keys(body.errors)[0] : '';
+        if (firstKey.startsWith('organization')) setTab('organization');
+        else if (firstKey.startsWith('project')) setTab('project');
+
+        const firstError = body.errors
+            ? (Object.values(body.errors)[0] as string[])[0]
+            : body.message;
+        setError(firstError ?? 'Could not save. Please review your answers.');
+        setSaving(null);
     };
+
+    const tabs: { key: Tab; label: string }[] = [
+        { key: 'organization', label: 'Organization' },
+        { key: 'project', label: 'Project Details' },
+        { key: 'documents', label: `Documents (${docCount})` },
+    ];
 
     return (
         <>
@@ -115,40 +166,74 @@ export default function ApplicationEditDrawer({ applicationId, onClose, onSaved 
                     </h2>
                     <button
                         onClick={handleClose}
+                        aria-label="Close"
                         className="cursor-pointer text-xl text-text-muted hover:text-text-primary"
                     >
                         ✕
                     </button>
                 </div>
 
+                {/* Tabs */}
+                <div className="flex border-b border-border-token">
+                    {tabs.map((t) => (
+                        <button
+                            key={t.key}
+                            onClick={() => setTab(t.key)}
+                            className={`cursor-pointer px-6 py-3 text-sm font-medium ${
+                                tab === t.key
+                                    ? 'border-b-2 border-primary text-primary'
+                                    : 'text-text-secondary hover:text-text-primary'
+                            }`}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+
                 <div className="flex-1 overflow-y-auto p-6">
                     {!loaded ? (
                         <Spinner label="Loading application..." />
                     ) : (
-                        <form ref={formRef} className="space-y-8">
+                        <div className="">
                             {error && (
-                                <div className="rounded bg-danger-bg p-3 text-sm text-danger-text">
+                                <div className="mb-6 rounded bg-danger-bg p-3 text-sm text-danger-text">
                                     {error}
                                 </div>
                             )}
+                            {success && (
+                                <div className="mb-6 rounded bg-success-bg p-3 text-sm text-success-text">
+                                    {success}
+                                </div>
+                            )}
 
-                            <section>
-                                <h3 className="mb-4 text-lg font-semibold text-text-primary">
-                                    About Organization
-                                </h3>
-                                <AboutOrganizationStep
-                                    value={data.organization}
-                                    onChange={updateOrganization}
-                                />
-                            </section>
+                            {/* Only the active tab renders: native validation covers it, and the
+                                backend catches cross-tab gaps (we auto-switch to the bad tab on 422). */}
+                            <form ref={formRef}>
+                                {tab === 'organization' && (
+                                    <AboutOrganizationStep
+                                        value={data.organization}
+                                        onChange={updateOrganization}
+                                    />
+                                )}
+                                {tab === 'project' && (
+                                    <ProjectDetailsStep value={data.project} onChange={updateProject} />
+                                )}
+                            </form>
 
-                            <section>
-                                <h3 className="mb-4 text-lg font-semibold text-text-primary">
-                                    Project Details
-                                </h3>
-                                <ProjectDetailsStep value={data.project} onChange={updateProject} />
-                            </section>
-                        </form>
+                            {tab === 'documents' &&
+                                (appId !== null ? (
+                                    <DocumentsPanel applicationId={appId} onCountChange={setDocCount} />
+                                ) : (
+                                    <div className="rounded-lg border border-dashed border-border-token p-10 text-center text-text-muted">
+                                        Documents can be attached once the application has been created.
+                                        <br />
+                                        Click{' '}
+                                        <span className="font-medium text-text-primary">Save</span> below
+                                        to create it as a draft first — the drawer will stay open and you
+                                        can attach files right here.
+                                    </div>
+                                ))}
+                        </div>
                     )}
                 </div>
 
