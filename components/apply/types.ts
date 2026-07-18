@@ -140,6 +140,39 @@ export interface ProgressStage {
     note: string | null;
 }
 
+export interface ApplicantInfo {
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
+    email: string;
+    phone: string | null;
+    position: string | null;
+    preferred_contact: string[] | null;
+}
+
+export interface OrganizationInfo {
+    id: number;
+    name: string;
+    type: string | null;
+    registration_number: string | null;
+    legal_status: string | null;
+    founded_year: number | null;
+    registered_country: string | null;
+    registered_state_province: string | null;
+    registered_city: string | null;
+    registered_address_line1: string | null;
+    registered_address_line2: string | null;
+    registered_postal_code: string | null;
+    contact_email: string | null;
+    contact_phone: string | null;
+    website_url: string | null;
+    currency: string | null;
+    annual_income: string | null;
+    annual_expenditure: string | null;
+    reserves_policy: string | null;
+    status: string | null;
+}
+
 export interface ApplicationDetail {
     id: number;
     project_title: string;
@@ -148,7 +181,8 @@ export interface ApplicationDetail {
     currency: string;
     project_details: Partial<ProjectDetailsData> | null;
     organization_id: number | null;
-    organization: { id: number; name: string } | null;
+    organization: OrganizationInfo | null;
+    applicant?: ApplicantInfo | null;
     current_stage: string | null;
     current_status: string;
     documents_count?: number;

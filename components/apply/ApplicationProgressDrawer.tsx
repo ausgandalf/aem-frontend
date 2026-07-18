@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import Spinner from '@/components/Spinner';
 import StatusBadge from './StatusBadge';
+import ApplicationDetailsPanel from './ApplicationDetailsPanel';
 import { ApplicationDetail, ProgressStage } from './types';
 
 interface Props {
@@ -78,46 +79,64 @@ export default function ApplicationProgressDrawer({ applicationId, onClose }: Pr
                     {!loaded ? (
                         <Spinner label="Loading progress..." />
                     ) : (
-                        <div className="mx-auto max-w-2xl">
-                            <ol className="relative border-l border-border-token">
-                                {progress.map((stage) => {
-                                    const isCurrent = application?.current_stage === stage.key;
-                                    const reached = stage.status !== null;
-                                    return (
-                                        <li key={stage.key} className="mb-8 ml-6">
-                                            <span
-                                                className={`absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
-                                                    isCurrent
-                                                        ? 'bg-primary text-primary-text'
-                                                        : reached
-                                                          ? 'bg-selected text-primary-text'
-                                                          : 'border border-border-token bg-surface text-text-muted'
-                                                }`}
-                                            >
-                                                {stage.order + 1}
-                                            </span>
-                                            <div className="flex items-center gap-3">
-                                                <h3
-                                                    className={`text-sm font-medium ${
-                                                        isCurrent ? 'text-text-primary' : 'text-text-secondary'
+                        <div className="grid grid-cols-1 lg:grid-cols-[40%_60%]">
+                            {/* Left: progress timeline */}
+                            <div className='lg:sticky lg:top-0 lg:self-start'>
+                                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-text-muted">
+                                    Progress
+                                </h3>
+                                <ol className="relative border-l border-border-token">
+                                    {progress.map((stage) => {
+                                        const isCurrent = application?.current_stage === stage.key;
+                                        const reached = stage.status !== null;
+                                        return (
+                                            <li key={stage.key} className="mb-8 ml-6">
+                                                <span
+                                                    className={`absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
+                                                        isCurrent
+                                                            ? 'bg-primary text-primary-text'
+                                                            : reached
+                                                              ? 'bg-selected text-primary-text'
+                                                              : 'border border-border-token bg-surface text-text-muted'
                                                     }`}
                                                 >
-                                                    {stage.label}
-                                                </h3>
-                                                <StatusBadge status={stage.status} />
-                                                {isCurrent && (
-                                                    <span className="text-xs font-medium text-primary">
-                                                        Current
-                                                    </span>
+                                                    {stage.order + 1}
+                                                </span>
+                                                <div className="flex items-center gap-3">
+                                                    <h4
+                                                        className={`text-sm font-medium ${
+                                                            isCurrent
+                                                                ? 'text-text-primary'
+                                                                : 'text-text-secondary'
+                                                        }`}
+                                                    >
+                                                        {stage.label}
+                                                    </h4>
+                                                    <StatusBadge status={stage.status} />
+                                                    {isCurrent && (
+                                                        <span className="text-xs font-medium text-primary">
+                                                            Current
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {stage.note && (
+                                                    <p className="mt-1 text-xs text-text-muted">
+                                                        {stage.note}
+                                                    </p>
                                                 )}
-                                            </div>
-                                            {stage.note && (
-                                                <p className="mt-1 text-xs text-text-muted">{stage.note}</p>
-                                            )}
-                                        </li>
-                                    );
-                                })}
-                            </ol>
+                                            </li>
+                                        );
+                                    })}
+                                </ol>
+                            </div>
+
+                            {/* Right: application details */}
+                            <div>
+                                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-text-muted">
+                                    Details
+                                </h3>
+                                {application && <ApplicationDetailsPanel application={application} />}
+                            </div>
                         </div>
                     )}
                 </div>

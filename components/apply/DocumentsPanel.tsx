@@ -33,6 +33,7 @@ interface DocumentItem {
 interface Props {
     applicationId: number;
     onCountChange?: (count: number) => void;
+    readOnly?: boolean; // hide the upload control (view-only contexts)
 }
 
 const formatSize = (bytes: number) => {
@@ -56,7 +57,7 @@ const FLAG_CLASSES: Record<string, string> = {
 
 const hasText = (v: string | null | undefined) => Boolean(v && v.trim() !== '');
 
-export default function DocumentsPanel({ applicationId, onCountChange }: Props) {
+export default function DocumentsPanel({ applicationId, onCountChange, readOnly = false }: Props) {
     const { getLabel } = useStages();
     const [docs, setDocs] = useState<DocumentItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -80,17 +81,19 @@ export default function DocumentsPanel({ applicationId, onCountChange }: Props) 
 
     return (
         <div>
-            <div className="mb-4 flex items-center justify-between md:flex-row md:items-center">
-                <p className="text-sm text-text-secondary">
-                    Documents attached to this application.
-                </p>
-                <button
-                    onClick={() => setUploadOpen(true)}
-                    className="cursor-pointer rounded bg-primary px-4 py-2 text-sm font-medium text-primary-text hover:bg-primary-hover"
-                >
-                    + Upload document
-                </button>
-            </div>
+            {!readOnly && (
+                <div className="mb-4 flex items-center justify-between md:flex-row md:items-center">
+                    <p className="text-sm text-text-secondary">
+                        Documents attached to this application.
+                    </p>
+                    <button
+                        onClick={() => setUploadOpen(true)}
+                        className="cursor-pointer rounded bg-primary px-4 py-2 text-sm font-medium text-primary-text hover:bg-primary-hover"
+                    >
+                        + Upload document
+                    </button>
+                </div>
+            )}
 
             {loading && <Spinner label="Loading documents..." />}
 
@@ -243,7 +246,7 @@ export default function DocumentsPanel({ applicationId, onCountChange }: Props) 
                 </div>
             )}
 
-            {uploadOpen && (
+            {!readOnly && uploadOpen && (
                 <UploadDocumentModal
                     applicationId={applicationId}
                     onClose={() => setUploadOpen(false)}
