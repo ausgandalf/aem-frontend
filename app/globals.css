@@ -93,3 +93,32 @@ body {
     color: var(--text-primary);
     transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* ── Themed scrollbars (adapt to light/dark via the tokens above) ── */
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-dark) transparent;
+}
+
+/* WebKit / Chromium / Edge / Safari */
+*::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+    background-color: var(--surface-dark);
+    border-radius: 9999px;
+    /* transparent border + padding-box = inset "floating" thumb on any surface */
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-muted);
+}
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}

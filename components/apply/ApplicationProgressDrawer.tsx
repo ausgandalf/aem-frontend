@@ -79,7 +79,7 @@ export default function ApplicationProgressDrawer({ applicationId, onClose }: Pr
                     {!loaded ? (
                         <Spinner label="Loading progress..." />
                     ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-[40%_60%]">
+                        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr]">
                             {/* Left: progress timeline */}
                             <div className='lg:sticky lg:top-0 lg:self-start'>
                                 <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-text-muted">

@@ -18,6 +18,7 @@ interface DocumentItem {
     sector_key: string | null;
     created_at: string;
     submitted_by: string | null;
+    updated_by: string | null;
     file: {
         original_name: string;
         mime_type: string | null;
@@ -113,6 +114,7 @@ export default function DocumentsPanel({ applicationId, onCountChange, readOnly 
                                 <th className="px-4 py-3 font-medium">Flag</th>
                                 <th className="px-4 py-3 font-medium">Stage</th>
                                 <th className="px-4 py-3 font-medium">Submitted by</th>
+                                <th className="px-4 py-3 font-medium">Updated by</th>
                                 <th className="px-4 py-3 font-medium">Uploaded</th>
                             </tr>
                         </thead>
@@ -234,6 +236,9 @@ export default function DocumentsPanel({ applicationId, onCountChange, readOnly 
                                     </td>
                                     <td className="px-4 py-3 text-text-secondary">
                                         {d.submitted_by ?? '—'}
+                                    </td>
+                                    <td className="px-4 py-3 text-text-secondary">
+                                        {d.updated_by ?? '—'}
                                     </td>
                                     <td className="px-4 py-3 text-text-muted">
                                         {new Date(d.created_at).toLocaleDateString()}
