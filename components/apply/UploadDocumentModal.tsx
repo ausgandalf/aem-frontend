@@ -8,9 +8,18 @@ interface Props {
     applicationId: number;
     onClose: () => void;
     onUploaded: () => void;
+    // Officer uploads on the Process page attach to a specific stage + sector.
+    stageKey?: string;
+    sectorKey?: string;
 }
 
-export default function UploadDocumentModal({ applicationId, onClose, onUploaded }: Props) {
+export default function UploadDocumentModal({
+    applicationId,
+    onClose,
+    onUploaded,
+    stageKey,
+    sectorKey,
+}: Props) {
     const [file, setFile] = useState<File | null>(null);
     const [about, setAbout] = useState('');
     const [tags, setTags] = useState('');
@@ -69,6 +78,8 @@ export default function UploadDocumentModal({ applicationId, onClose, onUploaded
                     mime_type: file.type,
                     about,
                     tags,
+                    ...(stageKey ? { stage_key: stageKey } : {}),
+                    ...(sectorKey ? { sector_key: sectorKey } : {}),
                 }),
             });
             const saved = await saveRes.json();

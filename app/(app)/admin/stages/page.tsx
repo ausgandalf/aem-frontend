@@ -198,6 +198,11 @@ export default function StagesPage() {
                                                                 <span className="ml-2 font-mono text-xs text-text-muted">
                                                                     {sec.key}
                                                                 </span>
+                                                                {sec.section && (
+                                                                    <span className="ml-2 rounded bg-surface-dark px-1.5 py-0.5 text-xs text-text-secondary">
+                                                                        {sec.section}
+                                                                    </span>
+                                                                )}
                                                                 {sec.description && (
                                                                     <p className="text-xs text-text-muted">
                                                                         {sec.description}

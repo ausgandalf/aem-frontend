@@ -2,6 +2,7 @@ export interface Sector {
     id: number;
     key: string;
     label: string;
+    section: string | null;
     description: string | null;
     stage_key: string;
     order: number;

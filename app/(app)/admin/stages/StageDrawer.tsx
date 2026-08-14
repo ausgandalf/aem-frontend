@@ -127,7 +127,7 @@ export default function StageDrawer({ stage, onClose, onChanged }: Props) {
         persistSectorOrder,
     );
 
-    const addSector = async (payload: { key: string; label: string; description: string }) => {
+    const addSector = async (payload: { key: string; label: string; section: string; description: string }) => {
         if (!saved) return { ok: false, error: 'Save the stage first' };
         const res = await api(`/api/admin/stages/${saved.id}/sectors`, {
             method: 'POST',
@@ -147,7 +147,7 @@ export default function StageDrawer({ stage, onClose, onChanged }: Props) {
 
     const saveSector = async (
         id: number,
-        payload: { key: string; label: string; description: string },
+        payload: { key: string; label: string; section: string; description: string },
     ) => {
         const res = await api(`/api/admin/sectors/${id}`, {
             method: 'PATCH',
@@ -344,12 +344,13 @@ function SectorRow({
     sector: Sector;
     dragging: boolean;
     dragProps: Record<string, unknown>;
-    onSave: (p: { key: string; label: string; description: string }) => Promise<{ ok: boolean; error?: string }>;
+    onSave: (p: { key: string; label: string; section: string; description: string }) => Promise<{ ok: boolean; error?: string }>;
     onDelete: () => void;
 }) {
     const [editing, setEditing] = useState(false);
     const [key, setKey] = useState(sector.key);
     const [label, setLabel] = useState(sector.label);
+    const [section, setSection] = useState(sector.section ?? '');
     const [description, setDescription] = useState(sector.description ?? '');
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -357,6 +358,7 @@ function SectorRow({
     const startEdit = () => {
         setKey(sector.key);
         setLabel(sector.label);
+        setSection(sector.section ?? '');
         setDescription(sector.description ?? '');
         setError(null);
         setEditing(true);
@@ -365,7 +367,7 @@ function SectorRow({
     const save = async () => {
         setBusy(true);
         setError(null);
-        const res = await onSave({ key, label, description });
+        const res = await onSave({ key, label, section, description });
         setBusy(false);
         if (res.ok) setEditing(false);
         else setError(res.error ?? 'Failed');
@@ -387,6 +389,12 @@ function SectorRow({
                         onChange={(e) => setKey(e.target.value)}
                         placeholder="Key (unique)"
                         className="w-full rounded border border-border-token bg-surface px-2 py-1.5 font-mono text-xs text-text-primary focus:border-primary focus:outline-none"
+                    />
+                    <input
+                        value={section}
+                        onChange={(e) => setSection(e.target.value)}
+                        placeholder="Section (optional)"
+                        className="w-full rounded border border-border-token bg-surface px-2 py-1.5 text-sm text-text-primary focus:border-primary focus:outline-none"
                     />
                     <textarea
                         value={description}
@@ -431,6 +439,11 @@ function SectorRow({
                         {sector.label}
                     </span>
                     <span className="font-mono text-xs text-text-muted">{sector.key}</span>
+                    {sector.section && (
+                        <span className="rounded bg-surface-dark px-1.5 py-0.5 text-xs text-text-secondary">
+                            {sector.section}
+                        </span>
+                    )}
                 </div>
                 {sector.description && (
                     <p className="truncate text-xs text-text-muted">{sector.description}</p>
@@ -458,11 +471,12 @@ function SectorRow({
 function AddSectorForm({
     onAdd,
 }: {
-    onAdd: (p: { key: string; label: string; description: string }) => Promise<{ ok: boolean; error?: string }>;
+    onAdd: (p: { key: string; label: string; section: string; description: string }) => Promise<{ ok: boolean; error?: string }>;
 }) {
     const [open, setOpen] = useState(false);
     const [key, setKey] = useState('');
     const [label, setLabel] = useState('');
+    const [section, setSection] = useState('');
     const [description, setDescription] = useState('');
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -470,6 +484,7 @@ function AddSectorForm({
     const reset = () => {
         setKey('');
         setLabel('');
+        setSection('');
         setDescription('');
         setError(null);
     };
@@ -477,7 +492,7 @@ function AddSectorForm({
     const submit = async () => {
         setBusy(true);
         setError(null);
-        const res = await onAdd({ key, label, description });
+        const res = await onAdd({ key, label, section, description });
         setBusy(false);
         if (res.ok) {
             reset();
@@ -513,6 +528,12 @@ function AddSectorForm({
                     onChange={(e) => setKey(e.target.value)}
                     placeholder="Key (unique, e.g. water_sanitation)"
                     className="w-full rounded border border-border-token bg-surface px-2 py-1.5 font-mono text-xs text-text-primary focus:border-primary focus:outline-none"
+                />
+                <input
+                    value={section}
+                    onChange={(e) => setSection(e.target.value)}
+                    placeholder="Section (optional)"
+                    className="w-full rounded border border-border-token bg-surface px-2 py-1.5 text-sm text-text-primary focus:border-primary focus:outline-none"
                 />
                 <textarea
                     value={description}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { useStages } from '@/lib/useStages';
 import ThemeToggle from '@/components/ThemeToggle';
 import Logo from '@/components/Logo';
 import UserMenu from '@/components/UserMenu';
@@ -11,22 +12,17 @@ import UserMenu from '@/components/UserMenu';
 interface NavItem {
     href: string;
     label: string;
-    role?: string; // if set, only shown to users holding this role
 }
-
-const NAV_ITEMS: NavItem[] = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/applications', label: 'My Applications', role: 'applicant' },
-    { href: '/admin/users', label: 'Users', role: 'admin' },
-    { href: '/admin/organizations', label: 'Organizations', role: 'admin' },
-    { href: '/admin/stages', label: 'Stages & Sectors', role: 'admin' },
-];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
     const { user, roles, loading } = useAuth();
+    const { stages } = useStages();
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    // An "officer" is anyone whose role handles at least one workflow stage.
+    const isOfficer = stages.some((s) => roles.includes(s.role));
 
     // Any unauthenticated visitor is bounced to login (guard for the whole group)
     useEffect(() => {
@@ -43,9 +39,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }
     if (!user) return null;
 
-    const visibleItems = NAV_ITEMS.filter(
-        (item) => !item.role || roles.includes(item.role)
-    );
+    const visibleItems: NavItem[] = [
+        { href: '/dashboard', label: 'Dashboard' },
+        ...(roles.includes('applicant') ? [{ href: '/applications', label: 'My Applications' }] : []),
+        ...(isOfficer ? [{ href: '/review', label: 'Applications' }] : []),
+        ...(roles.includes('admin')
+            ? [
+                  { href: '/admin/users', label: 'Users' },
+                  { href: '/admin/organizations', label: 'Organizations' },
+                  { href: '/admin/stages', label: 'Stages & Sectors' },
+              ]
+            : []),
+    ];
 
     // Shared sidebar body, reused by the desktop rail and the mobile drawer
     const sidebarBody = (
