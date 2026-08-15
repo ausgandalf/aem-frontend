@@ -74,57 +74,60 @@ export default function InspectionAccordion({
             {/* Header (click to expand) */}
             <div
                 onClick={() => setOpen((o) => !o)}
-                className="flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-surface-hover"
+                className="flex flex-wrap justify-between cursor-pointer items-center gap-3 px-4 py-3 hover:bg-surface-hover"
             >
-                {hasText(inspection.sector_description) ? (
-                    <span onClick={(e) => e.stopPropagation()}>
-                        <HoverTip>
-                            <span className="block whitespace-pre-wrap">{inspection.sector_description}</span>
-                        </HoverTip>
-                    </span>
-                ) : (
-                    <span className="inline-flex h-4 w-4 shrink-0" />
-                )}
+                <div className="min-w-0 flex items-center gap-2">
+                    {hasText(inspection.sector_description) ? (
+                        <span className="flex items-center" onClick={(e) => e.stopPropagation()}>
+                            <HoverTip>
+                                <span className="block whitespace-pre-wrap">{inspection.sector_description}</span>
+                            </HoverTip>
+                        </span>
+                    ) : (
+                        <span className="inline-flex h-4 w-4 shrink-0" />
+                    )}
 
-                <div className="min-w-0 flex-1">
-                    <span className="truncate font-medium text-text-primary">
-                        {inspection.sector_label ?? inspection.sector_key}
-                    </span>
+                    <div className="min-w-0 flex items-center gap-2 flex-1">
+                        <PlusIcon
+                            size={16}
+                            className={`shrink-0 text-text-muted transition-transform duration-300 ${open ? 'rotate-45' : ''}`}
+                        />
+                        <span className="font-medium text-text-primary">
+                            {inspection.sector_label ?? inspection.sector_key}
+                        </span>
+                    </div>
                 </div>
 
-                <InspectionStatusBadge status={inspection.status} />
+                <div className="min-w-0 flex items-center gap-2 ps-6">
+                    <InspectionStatusBadge status={inspection.status} />
 
-                <span className="whitespace-nowrap text-xs text-text-muted">
-                    📎 {inspection.documents_count}
-                </span>
+                    <span className="whitespace-nowrap text-xs text-text-muted">
+                        📎 {inspection.documents_count}
+                    </span>
 
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setStatusOpen(true);
-                    }}
-                    disabled={readOnly}
-                    className="rounded border border-text-secondary px-2.5 py-1 text-xs text-text-secondary hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                    Status
-                </button>
-
-                {!readOnly && (
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            setUploadOpen(true);
+                            setStatusOpen(true);
                         }}
-                        className="rounded border border-text-secondary px-2.5 py-1 text-xs text-text-secondary hover:border-primary hover:text-primary"
+                        disabled={readOnly}
+                        className="rounded border border-text-secondary px-2.5 py-1 text-xs text-text-secondary hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                        Upload
+                        Status
                     </button>
-                )}
 
-                <PlusIcon
-                    size={16}
-                    className={`shrink-0 text-text-muted transition-transform duration-300 ${open ? 'rotate-45' : ''}`}
-                />
+                    {!readOnly && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setUploadOpen(true);
+                            }}
+                            className="rounded border border-text-secondary px-2.5 py-1 text-xs text-text-secondary hover:border-primary hover:text-primary"
+                        >
+                            Upload
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Body */}

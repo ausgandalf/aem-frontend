@@ -433,17 +433,17 @@ function SectorRow({
             <span className="cursor-grab text-text-muted active:cursor-grabbing" title="Drag to reorder">
                 <GripIcon size={16} />
             </span>
-            <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-medium text-text-primary">
-                        {sector.label}
-                    </span>
-                    <span className="font-mono text-xs text-text-muted">{sector.key}</span>
+            <div className="min-w-0 gap-2 flex-1 flex flex-col">
+                <div className="flex flex-col items-start gap-1 flex-wrap">
                     {sector.section && (
                         <span className="rounded bg-surface-dark px-1.5 py-0.5 text-xs text-text-secondary">
                             {sector.section}
                         </span>
                     )}
+                    <span className="truncate text-sm font-medium text-text-primary">
+                        {sector.label}
+                    </span>
+                    <span className="font-mono text-xs text-text-muted">{sector.key}</span>
                 </div>
                 {sector.description && (
                     <p className="truncate text-xs text-text-muted">{sector.description}</p>
