@@ -3,8 +3,12 @@ export interface ProcessDoc {
     description: string | null;
     flag: string;
     flag_note: string | null;
+    stage_key?: string | null;
+    sector_key?: string | null;
     created_at: string;
+    updated_at?: string | null;
     submitted_by: string | null;
+    updated_by?: string | null;
     file: {
         original_name: string;
         mime_type: string | null;

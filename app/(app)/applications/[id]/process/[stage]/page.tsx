@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import Spinner from '@/components/Spinner';
 import InspectionAccordion from './InspectionAccordion';
+import CompleteDrawer from './CompleteDrawer';
 import { ProcessData, ProcessInspection } from './types';
 
 // Tabs are meant to vary per stage later; for now every stage shows Review.
@@ -34,6 +35,7 @@ export default function ProcessPage() {
     const [loading, setLoading] = useState(true);
     const [forbidden, setForbidden] = useState(false);
     const [tab, setTab] = useState('review');
+    const [completeOpen, setCompleteOpen] = useState(false);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -93,6 +95,14 @@ export default function ProcessPage() {
                         Read-only
                     </span>
                 )}
+                {!data.read_only && (
+                    <button
+                        onClick={() => setCompleteOpen(true)}
+                        className="ml-auto cursor-pointer rounded bg-primary px-4 py-2 text-sm font-medium text-primary-text hover:bg-primary-hover"
+                    >
+                        Complete
+                    </button>
+                )}
             </div>
             <p className="mb-6 text-sm text-text-muted">
                 Stage: <span className="font-medium text-text-secondary">{data.stage.label}</span>
@@ -145,6 +155,19 @@ export default function ProcessPage() {
                         </section>
                     ))}
                 </div>
+            )}
+
+            {completeOpen && (
+                <CompleteDrawer
+                    applicationId={data.application.id}
+                    stageKey={data.stage.key}
+                    stageLabel={data.stage.label}
+                    onClose={() => setCompleteOpen(false)}
+                    onDone={() => {
+                        setCompleteOpen(false);
+                        router.push('/review');
+                    }}
+                />
             )}
         </div>
     );

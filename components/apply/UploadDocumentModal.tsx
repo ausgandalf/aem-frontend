@@ -22,6 +22,7 @@ export default function UploadDocumentModal({
 }: Props) {
     const [file, setFile] = useState<File | null>(null);
     const [about, setAbout] = useState('');
+    const [description, setDescription] = useState('');
     const [tags, setTags] = useState('');
     const [busy, setBusy] = useState<'' | 'uploading' | 'saving'>('');
     const [error, setError] = useState('');
@@ -77,6 +78,7 @@ export default function UploadDocumentModal({
                     original_name: file.name,
                     mime_type: file.type,
                     about,
+                    description,
                     tags,
                     ...(stageKey ? { stage_key: stageKey } : {}),
                     ...(sectorKey ? { sector_key: sectorKey } : {}),
@@ -141,6 +143,19 @@ export default function UploadDocumentModal({
                             onChange={(e) => setAbout(e.target.value)}
                             rows={3}
                             className="mt-1 w-full rounded border border-border-token bg-surface px-3 py-2 text-text-primary focus:border-primary focus:outline-none"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-text-secondary">
+                            Why put this document
+                        </label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={3}
+                            placeholder="Explain why this document is relevant to the application."
+                            className="mt-1 w-full rounded border border-border-token bg-surface px-3 py-2 text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none"
                         />
                     </div>
 

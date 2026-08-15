@@ -23,6 +23,13 @@ const formatSize = (bytes: number) => {
 
 const hasText = (v: string | null | undefined) => Boolean(v && v.trim() !== '');
 
+const FLAG_CLASSES: Record<string, string> = {
+    ok: 'bg-success-bg text-success-text',
+    warning: 'bg-warning-bg text-warning-text',
+    invalid: 'bg-danger-bg text-danger-text',
+    ignore: 'bg-surface-dark text-text-muted',
+};
+
 function InspectionStatusBadge({ status }: { status: string | null }) {
     const map: Record<string, string> = {
         approved: 'bg-success-bg text-success-text',
@@ -156,6 +163,10 @@ export default function InspectionAccordion({
                                         key={doc.id}
                                         className="flex items-center gap-3 rounded border border-border-token px-3 py-2"
                                     >
+                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-surface-dark text-[10px] font-semibold uppercase text-text-muted">
+                                            {doc.file.extension ?? 'file'}
+                                        </span>
+
                                         {(hasText(doc.file.about) || hasText(doc.description)) && (
                                             <HoverTip>
                                                 <span className="block font-semibold text-text-primary">About</span>
@@ -172,8 +183,29 @@ export default function InspectionAccordion({
                                         )}
 
                                         <div className="min-w-0 flex-1">
-                                            <div className="truncate text-sm text-text-primary">
-                                                {doc.file.original_name}
+                                            <div className="flex items-center gap-2">
+                                                <span className="truncate text-sm text-text-primary">
+                                                    {doc.file.original_name}
+                                                </span>
+                                                <span className="flex shrink-0 items-center gap-1">
+                                                    <span
+                                                        className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${
+                                                            FLAG_CLASSES[doc.flag] ?? 'bg-surface-hover text-text-muted'
+                                                        }`}
+                                                    >
+                                                        {doc.flag}
+                                                    </span>
+                                                    {hasText(doc.flag_note) && (
+                                                        <HoverTip>
+                                                            <span className="block font-semibold text-text-primary">
+                                                                Flag note
+                                                            </span>
+                                                            <span className="block whitespace-pre-wrap">
+                                                                {doc.flag_note}
+                                                            </span>
+                                                        </HoverTip>
+                                                    )}
+                                                </span>
                                             </div>
                                             <div className="text-xs text-text-muted">
                                                 {formatSize(doc.file.size)}

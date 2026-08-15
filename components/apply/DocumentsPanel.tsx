@@ -7,7 +7,7 @@ import Spinner from '@/components/Spinner';
 import UploadDocumentModal from './UploadDocumentModal';
 import DocumentDetailsModal from './DocumentDetailsModal';
 import HoverTip from '@/components/HoverTip';
-import { PencilIcon, EyeIcon } from '@/components/SVGs';
+import { PencilIcon, EyeIcon, InfoIcon } from '@/components/SVGs';
 
 interface DocumentItem {
     id: number;
@@ -17,6 +17,7 @@ interface DocumentItem {
     stage_key: string | null;
     sector_key: string | null;
     created_at: string;
+    updated_at: string | null;
     submitted_by: string | null;
     updated_by: string | null;
     file: {
@@ -128,11 +129,11 @@ export default function DocumentsPanel({ applicationId, onCountChange, readOnly 
                                         <div className="flex items-center gap-3">
                                             <button
                                                 onClick={() => setDetailsDoc(d)}
-                                                title="Details"
-                                                aria-label="Document details"
+                                                title={readOnly ? 'Info' : 'Details'}
+                                                aria-label={readOnly ? 'Document information' : 'Document details'}
                                                 className="p-2 rounded border border-text-secondary cursor-pointer text-text-secondary hover:text-primary hover:border-primary"
                                             >
-                                                <PencilIcon />
+                                                {readOnly ? <InfoIcon /> : <PencilIcon />}
                                             </button>
                                             {d.view_url && (
                                                 <a
@@ -263,6 +264,7 @@ export default function DocumentsPanel({ applicationId, onCountChange, readOnly 
                 <DocumentDetailsModal
                     applicationId={applicationId}
                     doc={detailsDoc}
+                    readOnly={readOnly}
                     onClose={() => setDetailsDoc(null)}
                     onSaved={fetchDocs}
                 />
