@@ -118,7 +118,7 @@ export default function InspectionAccordion({
                             setStatusOpen(true);
                         }}
                         disabled={readOnly}
-                        className="rounded border border-text-secondary px-2.5 py-1 text-xs text-text-secondary hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                        className="cursor-pointer rounded border border-text-secondary px-2.5 py-1 text-xs text-text-secondary hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         Status
                     </button>
@@ -129,7 +129,7 @@ export default function InspectionAccordion({
                                 e.stopPropagation();
                                 setUploadOpen(true);
                             }}
-                            className="rounded border border-text-secondary px-2.5 py-1 text-xs text-text-secondary hover:border-primary hover:text-primary"
+                            className="cursor-pointer rounded border border-text-secondary px-2.5 py-1 text-xs text-text-secondary hover:border-primary hover:text-primary"
                         >
                             Upload
                         </button>

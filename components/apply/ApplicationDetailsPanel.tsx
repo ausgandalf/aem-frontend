@@ -95,7 +95,7 @@ export default function ApplicationDetailsPanel({ application }: { application: 
     const [docCount, setDocCount] = useState(application.documents_count ?? 0);
 
     // Single-open accordion group (Project Details open by default)
-    const [openKey, setOpenKey] = useState<SectionKey | null>('project');
+    const [openKey, setOpenKey] = useState<SectionKey | null>(null);
     const toggle = (k: SectionKey) => setOpenKey((cur) => (cur === k ? null : k));
 
     const fullName = a

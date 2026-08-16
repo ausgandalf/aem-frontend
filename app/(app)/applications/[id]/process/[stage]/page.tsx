@@ -65,7 +65,7 @@ export default function ProcessPage() {
         return (
             <div className="p-8">
                 <button
-                    onClick={() => router.push('/review')}
+                    onClick={() => router.push('/applications')}
                     className="mb-4 cursor-pointer text-sm text-primary hover:underline"
                 >
                     ← Back to applications
@@ -82,7 +82,7 @@ export default function ProcessPage() {
     return (
         <div className="p-8">
             <button
-                onClick={() => router.push('/review')}
+                onClick={() => router.push('/applications')}
                 className="mb-3 cursor-pointer text-sm text-primary hover:underline"
             >
                 ← Back to applications
@@ -165,7 +165,7 @@ export default function ProcessPage() {
                     onClose={() => setCompleteOpen(false)}
                     onDone={() => {
                         setCompleteOpen(false);
-                        router.push('/review');
+                        router.push('/applications');
                     }}
                 />
             )}

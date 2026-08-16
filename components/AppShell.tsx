@@ -41,8 +41,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
     const visibleItems: NavItem[] = [
         { href: '/dashboard', label: 'Dashboard' },
-        ...(roles.includes('applicant') ? [{ href: '/applications', label: 'My Applications' }] : []),
-        ...(isOfficer ? [{ href: '/review', label: 'Applications' }] : []),
+        ...(isOfficer
+            ? [{ href: '/applications', label: 'Applications' }]
+            : roles.includes('applicant')
+              ? [{ href: '/applications', label: 'My Applications' }]
+              : []),
         ...(roles.includes('admin')
             ? [
                   { href: '/admin/users', label: 'Users' },

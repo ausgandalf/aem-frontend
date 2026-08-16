@@ -1,16 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
 import { useStages } from '@/lib/useStages';
 import { api } from '@/lib/api';
 import Spinner from '@/components/Spinner';
 import StatusBadge from '@/components/apply/StatusBadge';
 import ApplicationProgressDrawer from '@/components/apply/ApplicationProgressDrawer';
 import { ApplicationCard } from '@/components/apply/types';
-import { StageGroup } from './types';
+
+interface StageGroup {
+    stage: { key: string; label: string; order: number };
+    applications: ApplicationCard[];
+}
 
 const formatAmount = (amount: string | null, currency: string) => {
     if (amount == null) return '—';
@@ -18,23 +20,11 @@ const formatAmount = (amount: string | null, currency: string) => {
     return `${currency} ${Number.isNaN(n) ? amount : n.toLocaleString()}`;
 };
 
-export default function OfficerApplicationsPage() {
-    const router = useRouter();
-    const { roles, loading: authLoading } = useAuth();
-    const { stages, getLabel } = useStages();
-
+export default function OfficerApplications() {
+    const { getLabel } = useStages();
     const [groups, setGroups] = useState<StageGroup[]>([]);
     const [loading, setLoading] = useState(true);
     const [summaryId, setSummaryId] = useState<number | null>(null);
-
-    const isOfficer = stages.some((s) => roles.includes(s.role));
-
-    // Bounce non-officers away once auth + stages have loaded.
-    useEffect(() => {
-        if (!authLoading && stages.length > 0 && !isOfficer) {
-            router.push('/dashboard');
-        }
-    }, [authLoading, stages.length, isOfficer, router]);
 
     const fetchQueue = useCallback(async () => {
         setLoading(true);
